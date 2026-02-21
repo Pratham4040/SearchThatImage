@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ImageCard } from '../components/ImageCard'
 import { SearchBar } from '../components/SearchBar'
-import { fetchImages, searchImages } from '../services/api'
+import { deleteImage, fetchImages, searchImages } from '../services/api'
 
 /**
  * Home page – lists all images and provides search + upload navigation.
@@ -43,6 +43,18 @@ export default function Home() {
   const handleClear = () => {
     setSearchQuery('')
     loadImages()
+  }
+
+  const handleDelete = async (image) => {
+    const confirmed = window.confirm(`Delete "${image.original_filename}"?`)
+    if (!confirmed) return
+
+    try {
+      await deleteImage(image.id)
+      setImages((prev) => prev.filter((img) => img.id !== image.id))
+    } catch {
+      setError('Delete failed. Please try again.')
+    }
   }
 
   useEffect(() => {
@@ -103,7 +115,7 @@ export default function Home() {
         {!loading && images.length > 0 && (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {images.map((image) => (
-              <ImageCard key={image.id} image={image} />
+              <ImageCard key={image.id} image={image} onDelete={handleDelete} />
             ))}
           </div>
         )}

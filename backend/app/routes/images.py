@@ -6,6 +6,8 @@ from pathlib import Path
 
 from flask import Blueprint, current_app, jsonify, request, send_file, send_from_directory
 
+from app.services.delete_service import delete_image_record
+from app.services.download_service import get_image_download
 from app.services.image_service import get_all_images, get_image_by_id, save_image
 
 images_bp = Blueprint("images", __name__)
@@ -51,6 +53,40 @@ def get_image(image_id: int) -> tuple:
     if image is None:
         return jsonify({"error": "Image not found", "status": 404}), 404
     return jsonify(image.to_dict()), 200
+
+
+@images_bp.route("/<int:image_id>", methods=["DELETE"])
+def delete_image(image_id: int) -> tuple:
+    """Delete a single image by ID.
+
+    Args:
+        image_id: Primary key of the image record.
+
+    Returns:
+        JSON status response or 404 error.
+    """
+    deleted = delete_image_record(image_id, current_app.config["UPLOAD_FOLDER"])
+    if not deleted:
+        return jsonify({"error": "Image not found", "status": 404}), 404
+    return jsonify({"status": "deleted", "id": image_id}), 200
+
+
+@images_bp.route("/<int:image_id>/download", methods=["GET"])
+def download_image(image_id: int) -> tuple:
+    """Download an image file by ID.
+
+    Args:
+        image_id: Primary key of the image record.
+
+    Returns:
+        The binary image file or a 404 error.
+    """
+    resolved = get_image_download(image_id, current_app.config["UPLOAD_FOLDER"])
+    if resolved is None:
+        return jsonify({"error": "Image not found", "status": 404}), 404
+
+    file_path, original_filename = resolved
+    return send_file(file_path, as_attachment=True, download_name=original_filename)
 
 
 @images_bp.route("/upload", methods=["POST"])

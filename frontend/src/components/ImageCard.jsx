@@ -4,9 +4,9 @@
  * @param {object}   props
  * @param {object}   props.image - Image record returned by the API.
  */
-import { BASE_URL } from '../services/api'
+import { BASE_URL, getDownloadUrl } from '../services/api'
 
-export function ImageCard({ image }) {
+export function ImageCard({ image, onDelete }) {
   const filename = image.filename || image.file_path?.split(/[\\/]/).pop()
   const imageSrc = filename
     ? `${BASE_URL}/images/file/${encodeURIComponent(filename)}`
@@ -45,6 +45,22 @@ export function ImageCard({ image }) {
         ) : (
           <p className="text-xs text-gray-400">No tags available</p>
         )}
+
+        <div className="mt-3 flex items-center gap-2">
+          <a
+            href={getDownloadUrl(image.id)}
+            className="rounded-lg border border-indigo-200 px-3 py-1.5 text-xs text-indigo-700 hover:bg-indigo-50"
+          >
+            Download
+          </a>
+          <button
+            type="button"
+            onClick={() => onDelete?.(image)}
+            className="rounded-lg border border-red-200 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50"
+          >
+            Delete
+          </button>
+        </div>
       </div>
     </div>
   )

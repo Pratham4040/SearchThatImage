@@ -87,4 +87,21 @@ export const fetchImageById = async (imageId) => {
   return data
 }
 
+/**
+ * Delete a single image by ID.
+ * @param {number} imageId - Primary key of the image.
+ * @returns {Promise<object>} Delete result.
+ */
+export const deleteImage = async (imageId) => {
+  const { data } = await api.delete(`/images/${imageId}`)
+  return data
+}
+
+/**
+ * Build a download URL for an image by ID.
+ * @param {number} imageId - Primary key of the image.
+ * @returns {string} Download URL.
+ */
+export const getDownloadUrl = (imageId) => `${BASE_URL}/images/${imageId}/download`
+
 export default api

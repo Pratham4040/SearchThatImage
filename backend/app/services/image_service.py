@@ -74,7 +74,7 @@ def save_image(file: FileStorage, upload_folder: str) -> Image:
         # Check if tag already exists
         existing_tag = db.session.execute(
             db.select(Tag).where(Tag.name == tag_name.lower())
-        ).scalar_one_or_none()
+        ).unique().scalar_one_or_none()
 
         if existing_tag:
             tag_objects.append(existing_tag)
