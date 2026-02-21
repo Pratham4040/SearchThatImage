@@ -4,8 +4,13 @@
  * @param {object}   props
  * @param {object}   props.image - Image record returned by the API.
  */
+import { BASE_URL } from '../services/api'
+
 export function ImageCard({ image }) {
-  const imageSrc = `/api/images/file/${image.filename}`
+  const filename = image.filename || image.file_path?.split(/[\\/]/).pop()
+  const imageSrc = filename
+    ? `${BASE_URL}/images/file/${encodeURIComponent(filename)}`
+    : ''
 
   return (
     <div className="group overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow">

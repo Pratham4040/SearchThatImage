@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from flask import Blueprint, current_app, jsonify, request, send_from_directory
+from pathlib import Path
+
+from flask import Blueprint, current_app, jsonify, request, send_file, send_from_directory
 
 from app.services.image_service import get_all_images, get_image_by_id, save_image
 
@@ -73,8 +75,11 @@ def upload_image() -> tuple:
         return jsonify(image.to_dict()), 201
     except ValueError as exc:
         return jsonify({"error": str(exc), "status": 400}), 400
-    except RuntimeError as exc:
-        return jsonify({"error": str(exc), "status": 502}), 502
+    except TimeoutError as exc:
+        return jsonify({"error": f"AI processing timed out: {str(exc)}", "status": 504}), 504
+    except Exception as exc:
+        # Catch any other unexpected errors
+        return jsonify({"error": f"Server error: {str(exc)}", "status": 500}), 500
 
 
 @images_bp.route("/file/<path:filename>", methods=["GET"])
@@ -87,4 +92,16 @@ def serve_image(filename: str) -> object:
     Returns:
         The binary image file or a 404 error.
     """
-    return send_from_directory(current_app.config["UPLOAD_FOLDER"], filename)
+    safe_name = Path(filename).name
+    upload_root = Path(current_app.config["UPLOAD_FOLDER"])
+    candidate = upload_root / safe_name
+    if candidate.exists():
+        return send_file(candidate)
+
+    # Fallback for legacy paths if config mismatches
+    backend_root = Path(__file__).resolve().parent.parent.parent
+    legacy_candidate = backend_root / "uploads" / safe_name
+    if legacy_candidate.exists():
+        return send_file(legacy_candidate)
+
+    return jsonify({"error": "Image file not found", "status": 404}), 404

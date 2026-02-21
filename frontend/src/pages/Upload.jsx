@@ -36,22 +36,43 @@ export default function Upload() {
             <p className="mb-2 font-medium text-green-800">
               ✅ Upload successful!
             </p>
-            <p className="mb-1 text-sm text-gray-700">
+            <p className="mb-3 text-sm text-gray-700">
               <strong>File:</strong> {uploaded.original_filename}
             </p>
-            <div className="flex flex-wrap gap-1">
-              {uploaded.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs text-indigo-700"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
+            {uploaded.tag_names && uploaded.tag_names.length > 0 ? (
+              <>
+                <p className="mb-2 text-xs font-medium text-gray-600">AI-Generated Tags:</p>
+                <div className="flex flex-wrap gap-1">
+                  {uploaded.tag_names.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs text-indigo-700"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </>
+            ) : uploaded.tags && uploaded.tags.length > 0 ? (
+              <>
+                <p className="mb-2 text-xs font-medium text-gray-600">Tags:</p>
+                <div className="flex flex-wrap gap-1">
+                  {uploaded.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs text-indigo-700"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p className="text-xs text-gray-500">No tags generated (AI API may be unavailable)</p>
+            )}
             <a
               href="/"
-              className="mt-3 inline-block text-sm text-indigo-600 underline"
+              className="mt-3 inline-block text-sm text-indigo-600 underline hover:no-underline"
             >
               View in gallery →
             </a>

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import uuid
 from pathlib import Path
@@ -11,7 +12,10 @@ from werkzeug.utils import secure_filename
 
 from app.models.database import db
 from app.models.image import Image
-from app.services.ai_service import get_image_tags
+from app.models.tag import Tag
+from app.services.ai_service import generate_image_tags
+
+logger = logging.getLogger(__name__)
 
 ALLOWED_EXTENSIONS: set[str] = {
     ext.strip()
@@ -58,17 +62,41 @@ def save_image(file: FileStorage, upload_folder: str) -> Image:
 
     file.save(str(file_path))
 
-    tags: list[str] = get_image_tags(file_path)
+    # Generate tags via AI (gracefully handles failures)
+    tags: list[str] = generate_image_tags(str(file_path))
+    logger.info(f"Generated {len(tags)} tags for {unique_filename}: {tags}")
+
+    # Create or fetch Tag objects and link them to the image
+    tag_objects = []
+    for tag_name in tags:
+        if not tag_name:  # Skip empty tag names
+            continue
+        # Check if tag already exists
+        existing_tag = db.session.execute(
+            db.select(Tag).where(Tag.name == tag_name.lower())
+        ).scalar_one_or_none()
+
+        if existing_tag:
+            tag_objects.append(existing_tag)
+        else:
+            # Create new tag
+            new_tag = Tag(name=tag_name.lower())
+            db.session.add(new_tag)
+            tag_objects.append(new_tag)
+
+    db.session.flush()  # Ensure new tags get IDs before creating image
 
     image = Image(
         filename=unique_filename,
         original_filename=original_filename,
         file_path=str(file_path),
         tags=",".join(tags),
+        tag_objects=tag_objects,
     )
     db.session.add(image)
     db.session.commit()
 
+    logger.info(f"Successfully saved image: {unique_filename}")
     return image
 
 
@@ -80,7 +108,7 @@ def get_all_images() -> list[Image]:
     """
     return db.session.execute(
         db.select(Image).order_by(Image.created_at.desc())
-    ).scalars().all()
+    ).unique().scalars().all()
 
 
 def get_image_by_id(image_id: int) -> Image | None:

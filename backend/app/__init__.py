@@ -30,6 +30,10 @@ def create_app() -> Flask:
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     upload_folder = Path(os.getenv("UPLOAD_FOLDER", "uploads"))
+    if not upload_folder.is_absolute():
+        # Resolve relative upload paths against the backend root directory.
+        backend_root = Path(__file__).resolve().parent.parent
+        upload_folder = backend_root / upload_folder
     upload_folder.mkdir(parents=True, exist_ok=True)
     app.config["UPLOAD_FOLDER"] = str(upload_folder)
     app.config["MAX_CONTENT_LENGTH"] = (
@@ -47,8 +51,18 @@ def create_app() -> Flask:
     app.register_blueprint(images_bp, url_prefix="/api/images")
     app.register_blueprint(search_bp, url_prefix="/api/search")
 
+    # ── Health check endpoint ─────────────────────────────────────────────────
+    @app.route("/api/health", methods=["GET"])
+    def health_check():
+        """Simple health check endpoint to verify backend is running."""
+        return {"status": "ok", "message": "Backend is running"}, 200
+
     # ── Database initialisation ───────────────────────────────────────────────
     with app.app_context():
+        # Import models BEFORE create_all() so SQLAlchemy knows about them
+        from app.models.image import Image  # noqa: F401
+        from app.models.tag import Tag  # noqa: F401
+
         db.create_all()
 
     return app

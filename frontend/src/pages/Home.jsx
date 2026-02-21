@@ -18,7 +18,7 @@ export default function Home() {
     setError(null)
     try {
       const data = await fetchImages()
-      setImages(data.images)
+      setImages(data.images || [])
     } catch {
       setError('Failed to load images. Is the backend running?')
     } finally {
@@ -32,7 +32,7 @@ export default function Home() {
     setError(null)
     try {
       const data = await searchImages(query)
-      setImages(data.results)
+      setImages(data.results || [])
     } catch {
       setError('Search failed. Please try again.')
     } finally {
@@ -101,7 +101,7 @@ export default function Home() {
 
         {/* Grid */}
         {!loading && images.length > 0 && (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {images.map((image) => (
               <ImageCard key={image.id} image={image} />
             ))}

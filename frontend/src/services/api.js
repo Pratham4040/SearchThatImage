@@ -5,12 +5,42 @@
 
 import axios from 'axios'
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api'
+const RAW_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api'
+const NORMALIZED_BASE = RAW_BASE_URL.replace(/\/$/, '')
+export const BASE_URL = NORMALIZED_BASE.endsWith('/api')
+  ? NORMALIZED_BASE
+  : `${NORMALIZED_BASE}/api`
+
+console.log('🔗 API BASE_URL:', BASE_URL)
 
 const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 30_000,
+  timeout: 120_000,  // 120 seconds – allows time for AI tag generation
 })
+
+// Add request interceptor for debugging
+api.interceptors.request.use(
+  (config) => {
+    console.log(`📤 ${config.method.toUpperCase()} ${BASE_URL}${config.url}`)
+    return config
+  },
+  (error) => {
+    console.error('❌ Request setup error:', error)
+    return Promise.reject(error)
+  }
+)
+
+// Add response interceptor for debugging
+api.interceptors.response.use(
+  (response) => {
+    console.log(`✅ ${response.status} received`)
+    return response
+  },
+  (error) => {
+    console.error(`❌ ${error.response?.status || 'NETWORK'} error:`, error.message)
+    return Promise.reject(error)
+  }
+)
 
 /**
  * Upload an image file to the backend.
@@ -20,9 +50,9 @@ const api = axios.create({
 export const uploadImage = async (file) => {
   const formData = new FormData()
   formData.append('image', file)
-  const { data } = await api.post('/images/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
+  
+  // Don't manually set Content-Type header – axios + FormData handle it automatically
+  const { data } = await api.post('/images/upload', formData)
   return data
 }
 

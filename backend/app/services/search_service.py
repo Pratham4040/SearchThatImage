@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from app.models.database import db
 from app.models.image import Image
+from app.models.tag import Tag
 
 
 def search_images_by_tags(query: str) -> list[Image]:
@@ -23,12 +24,18 @@ def search_images_by_tags(query: str) -> list[Image]:
 
     normalised: str = query.strip().lower()
 
+    # Search both legacy tags (string) and tag_objects (Many-to-Many relationship)
     results = (
         db.session.execute(
             db.select(Image)
-            .where(Image.tags.ilike(f"%{normalised}%"))
+            .where(
+                (Image.tags.ilike(f"%{normalised}%"))  # Legacy comma-separated tags
+                | (Image.tag_objects.any(Tag.name.ilike(f"%{normalised}%")))  # New relationship
+            )
             .order_by(Image.created_at.desc())
+            .distinct()
         )
+        .unique()
         .scalars()
         .all()
     )

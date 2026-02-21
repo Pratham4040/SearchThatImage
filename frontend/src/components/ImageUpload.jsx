@@ -39,7 +39,19 @@ export function ImageUpload({ onUploadSuccess }) {
       setPreview(null)
       onUploadSuccess?.(image)
     } catch (err) {
-      setError(err.response?.data?.error ?? 'Upload failed. Please try again.')
+      // Handle different error types
+      if (err.code === 'ECONNABORTED') {
+        setError('Upload timed out. AI processing took too long. Please try again.')
+      } else if (err.response?.data?.error) {
+        setError(err.response.data.error)
+      } else if (err.response?.status === 424) {
+        setError('Backend is not responding. Is the server running?')
+      } else if (err.message) {
+        setError(`Error: ${err.message}`)
+      } else {
+        setError('Upload failed. Please check your connection and try again.')
+      }
+      console.error('Upload error:', err)
     } finally {
       setLoading(false)
     }
