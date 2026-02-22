@@ -20,41 +20,52 @@ generates descriptive tags → search your gallery by those tags.
 SearchThatImage/
 ├── backend/
 │   ├── app/
-│   │   ├── models/          # SQLAlchemy models
-│   │   │   ├── database.py  # Shared db instance
-│   │   │   └── image.py     # Image model
-│   │   ├── routes/          # Flask Blueprints (HTTP layer only)
-│   │   │   ├── images.py    # /api/images/*
-│   │   │   └── search.py    # /api/search/*
-│   │   └── services/        # Business logic
-│   │       ├── ai_service.py     # AI Vision API integration
-│   │       ├── image_service.py  # Upload & persistence logic
-│   │       └── search_service.py # Tag-based search logic
-│   ├── uploads/             # Uploaded image files (git-ignored)
-│   ├── app.py               # Application factory entry point
+│   │   ├── models/                  # SQLAlchemy models (database layer)
+│   │   │   ├── __init__.py
+│   │   │   ├── database.py          # Shared db instance & configuration
+│   │   │   ├── image.py             # Image model with relationships
+│   │   │   └── tag.py               # Tag model for AI-generated descriptors
+│   │   ├── routes/                  # Flask Blueprints (HTTP layer only)
+│   │   │   ├── __init__.py
+│   │   │   ├── images.py            # /api/images/* endpoints
+│   │   │   └── search.py            # /api/search/* endpoints
+│   │   ├── services/                # Business logic & integrations
+│   │   │   ├── __init__.py
+│   │   │   ├── ai_service.py        # AI Vision API (Gemini) integration
+│   │   │   ├── image_service.py     # Image upload & persistence
+│   │   │   ├── search_service.py    # Tag-based search logic
+│   │   │   ├── delete_service.py    # Image & tag deletion logic
+│   │   │   └── download_service.py  # Image download utilities
+│   │   └── __init__.py              # App factory & configuration
+│   ├── tests/                       # Test suite
+│   │   ├── conftest.py              # Pytest fixtures & configuration
+│   │   └── test_endpoints.py        # API endpoint tests
+│   ├── instance/                    # Flask instance folder (git-ignored)
+│   ├── uploads/                     # Uploaded image files (git-ignored)
+│   ├── app.py                       # Application entry point
 │   └── requirements.txt
 ├── frontend/
 │   ├── src/
-│   │   ├── components/      # Reusable UI components
-│   │   │   ├── ImageCard.jsx
-│   │   │   ├── ImageUpload.jsx
-│   │   │   └── SearchBar.jsx
-│   │   ├── pages/           # Page-level components
-│   │   │   ├── Home.jsx
-│   │   │   └── Upload.jsx
+│   │   ├── components/              # Reusable React UI components
+│   │   │   ├── ImageCard.jsx        # Image display with tags
+│   │   │   ├── ImageUpload.jsx      # File upload component
+│   │   │   └── SearchBar.jsx        # Search query input
+│   │   ├── pages/                   # Page-level components (routes)
+│   │   │   ├── Home.jsx             # Gallery & search results
+│   │   │   └── Upload.jsx           # Upload image page
 │   │   ├── services/
-│   │   │   └── api.js       # All axios calls live here
-│   │   ├── App.jsx
-│   │   ├── main.jsx
-│   │   └── index.css
-│   ├── index.html
-│   ├── package.json
-│   ├── tailwind.config.js
-│   └── vite.config.js
-├── .env.example             # Required environment variables
-├── .gitignore
-└── .github/
-    └── copilot-instructions.md
+│   │   │   └── api.js               # Centralized API client (axios)
+│   │   ├── App.jsx                  # Main React component
+│   │   ├── main.jsx                 # React entry point
+│   │   └── index.css                # Global styles
+│   ├── index.html                   # HTML template
+│   ├── package.json                 # Frontend dependencies
+│   ├── postcss.config.js            # PostCSS configuration
+│   ├── tailwind.config.js           # TailwindCSS configuration
+│   ├── vite.config.js               # Vite dev server & build config
+│   └── .gitignore
+├── README.md                        # Project documentation
+└── .env.example                     # Template for environment variables
 ```
 
 ---
